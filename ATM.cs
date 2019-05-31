@@ -1,9 +1,22 @@
 using System;
 using System.Collections;
 
+
+public class BigMoneyFetchedEventArgs //参数类
+{
+    public string ID { set { _id = value; } get { return _id; } }
+    private string _id;
+    public double BigMoney { set { _bigMoney = value; } get { return _bigMoney; } }
+    private double _bigMoney;
+
+    public BigMoneyFetchedEventArgs(string id,double b) { this._id = id; this._bigMoney = b; }
+}
+//声明委托  大量取款
+public delegate void BigMoneyFetchedEventHandler(object sender, BigMoneyFetchedEventArgs e);
 public class ATM {
 	
 	Bank bank;
+    public event BigMoneyFetchedEventHandler BigMoneyFetched;//声明事件，
 	public ATM( Bank bank)
 	{
 		this.bank = bank;
@@ -50,12 +63,31 @@ public class ATM {
                 Show("withdraw money");
                 string smoney = GetInput();
                 double money = double.Parse(smoney);
+                if(BigMoneyFetched != null)
+                {
+                    if (money > 10000)
+                    {
+                        BigMoneyFetched(this, new BigMoneyFetchedEventArgs(id, money));
+                    }
+                }
+                bool ok = false;
+                try
+                {
+                    ok = account.WithdrawMoney(money);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine("出现了异常： {0}", e.Message);
+                }
+                finally
+                {
+                    if (ok) Show("ok");
+                    else Show("error");
 
-                bool ok = account.WithdrawMoney(money);
-                if (ok) Show("ok");
-                else Show("error");
+                    Show("balance: " + account.money);
+                }
+                
 
-                Show("balance: " + account.money);
             }
             Show("1:finish; 2:continue");
             op = GetInput();
@@ -99,6 +131,13 @@ public class ATM {
                 Show("save money");
                 string smoney = GetInput();
                 double money = double.Parse(smoney);
+                if (BigMoneyFetched != null)
+                {
+                    if (money > 10000)
+                    {
+                        BigMoneyFetched(this, new BigMoneyFetchedEventArgs(id, money));
+                    }
+                }
 
                 bool ok = account.SaveMoney(money);
                 if (ok) Show("ok");
@@ -112,11 +151,24 @@ public class ATM {
                 string smoney = GetInput();
                 double money = double.Parse(smoney);
 
-                bool ok = account.WithdrawMoney(money);
-                if (ok) Show("ok");
-                else Show("error");
+                bool ok = false;
+                try
+                {
+                    ok = account.WithdrawMoney(money);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine("出现异常：{0}", e.Message);
+                }
+                finally
+                {
+                    if (ok) Show("ok");
+                    else Show("error");
 
-                Show("limit: " + account.CreditLimit);
+                    Show("limit: " + account.CreditLimit);
+                }
+
+
             }
             Show("1:finish; 2:continue");
             op = GetInput();

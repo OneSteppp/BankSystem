@@ -1,4 +1,9 @@
 
+public class BadCashException : System.Exception
+{
+    public BadCashException(string message)
+        : base(message) { }
+}
 public class Account {
     public string name { set; get; }
     public double money { set; get; }//decimal money;
@@ -9,7 +14,7 @@ public class Account {
 
     public Account(string name, string id, string pwd, double money )
 	{
-        //if( money < 0 ) throw new Exception("....");
+        //if( money < 0 ) throw new System.Exception("存钱数不能小于0！");
         this.name = name;
 		this.id = id;
 		this.pwd = pwd;
@@ -25,10 +30,16 @@ public class Account {
 	
 	public virtual bool WithdrawMoney( double money)
 	{
+        System.Random rnd = new System.Random();
 		if( this.money >= money )
 		{
-			this.money -= money;
-			return true;
+            if (rnd.Next(3) < 1)
+            {
+                this.money -= money;
+                return true;
+            }
+            else
+                throw new BadCashException("存在破损的钞票");
 		}
 		return false;
 	}
@@ -47,11 +58,17 @@ public class CreditCardAccount : Account
     }
     public override bool WithdrawMoney(double money)
     {
+        System.Random rnd = new System.Random();
         if (money > CreditLimit) return false;
         else
         {
-            CreditLimit -= money;
-            return true;
+            if (rnd.Next(3) < 1)
+            {
+                CreditLimit -= money;
+                return true;
+            }
+            else
+                throw new BadCashException("存在破损的钞票");
         }
     }
     public override bool SaveMoney(double money)
